@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTaskContext } from '../../context/TaskContext';
 import { Task } from '../../types/Task';
 import TaskItem from './TaskItem';
 import styles from './TaskList.module.css';
 
 const TaskList: React.FC = () => {
-    const { state } = useTaskContext();
+    const { state, updateTask } = useTaskContext();
     const { tasks, filters, loading, error } = state;
+    const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+    const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
     const filteredTasks = useMemo(() => {
         return tasks.filter((task: Task) => {
@@ -34,20 +36,113 @@ const TaskList: React.FC = () => {
         });
     }, [tasks, filters]);
 
-    const sortedTasks = useMemo(() => {
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        return [...filteredTasks].sort((a, b) => {
-            const prioDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
-            if (prioDiff !== 0) return prioDiff;
+    // Group tasks by status
+    const tasksByStatus = useMemo(() => {
+        const grouped = {
+            'todo': [] as Task[],
+            'in-progress': [] as Task[],
+            'done': [] as Task[]
+        };
 
-            const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-            const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-            return aDate - bDate || a.title.localeCompare(b.title);
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+
+        filteredTasks.forEach(task => {
+            if (grouped[task.status]) {
+                grouped[task.status].push(task);
+            }
         });
+
+        // Sort tasks within each column
+        Object.keys(grouped).forEach(status => {
+            grouped[status as keyof typeof grouped].sort((a, b) => {
+                const prioDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+                if (prioDiff !== 0) return prioDiff;
+
+                const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+                const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+                return aDate - bDate || a.title.localeCompare(b.title);
+            });
+        });
+
+        return grouped;
     }, [filteredTasks]);
 
     const countByStatus = (status: Task['status']) =>
         tasks.filter(t => t.status === status).length;
+
+    const getColumnTitle = (status: string) => {
+        switch (status) {
+            case 'todo': return '📝 To Do';
+            case 'in-progress': return '🔄 In Progress';
+            case 'done': return '✅ Done';
+            default: return status;
+        }
+    };
+
+    const getColumnColor = (status: string) => {
+        switch (status) {
+            case 'todo': return '#ef4444'; // red
+            case 'in-progress': return '#f59e0b'; // amber
+            case 'done': return '#10b981'; // emerald
+            default: return '#6b7280';
+        }
+    };
+
+    // Drag and Drop Handlers
+    const handleDragStart = (e: React.DragEvent, task: Task) => {
+        setDraggedTask(task);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.currentTarget.outerHTML);
+        (e.currentTarget as HTMLElement).style.opacity = '0.5';
+    };
+
+    const handleDragEnd = (e: React.DragEvent) => {
+        (e.currentTarget as HTMLElement).style.opacity = '1';
+        setDraggedTask(null);
+        setDragOverColumn(null);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDragEnter = (e: React.DragEvent, status: string) => {
+        e.preventDefault();
+        setDragOverColumn(status);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        // Only clear drag over if we're leaving the column container
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setDragOverColumn(null);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent, newStatus: Task['status']) => {
+        e.preventDefault();
+        setDragOverColumn(null);
+
+        if (draggedTask && draggedTask.status !== newStatus) {
+            // Update the task status - create updated task object
+            const updatedTask: Task = { ...draggedTask, status: newStatus };
+            updateTask(updatedTask);
+        }
+
+        setDraggedTask(null);
+    };
+
+    // Wrapper component for draggable task items
+    const DraggableTaskItem: React.FC<{ task: Task }> = ({ task }) => (
+        <div
+            draggable
+            onDragStart={(e) => handleDragStart(e, task)}
+            onDragEnd={handleDragEnd}
+            className={styles.draggableTask}
+        >
+            <TaskItem task={task} />
+        </div>
+    );
 
     return (
         <div className={styles.taskListContainer}>
@@ -76,7 +171,7 @@ const TaskList: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    {sortedTasks.length === 0 ? (
+                    {filteredTasks.length === 0 ? (
                         <div className={styles.stateContainer}>
                             {tasks.length === 0 ? (
                                 <>
@@ -93,11 +188,48 @@ const TaskList: React.FC = () => {
                             )}
                         </div>
                     ) : (
-                        <div className={styles.tasksGrid}>
-                            {sortedTasks.map(task => (
-                                <TaskItem key={task.id} task={task} />
-                            ))}
-                        </div>
+                        <>
+                            {/* Kanban Board Layout with Drag & Drop */}
+                            <div className={styles.kanbanBoard}>
+                                {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
+                                    <div
+                                        key={status}
+                                        className={`${styles.kanbanColumn} ${dragOverColumn === status ? styles.dragOver : ''
+                                            }`}
+                                        onDragOver={handleDragOver}
+                                        onDragEnter={(e) => handleDragEnter(e, status)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, status as Task['status'])}
+                                    >
+                                        <div
+                                            className={styles.columnHeader}
+                                            style={{ borderTopColor: getColumnColor(status) }}
+                                        >
+                                            <h3 className={styles.columnTitle}>
+                                                {getColumnTitle(status)}
+                                            </h3>
+                                            <span
+                                                className={styles.taskCounter}
+                                                style={{ backgroundColor: getColumnColor(status) }}
+                                            >
+                                                {statusTasks.length}
+                                            </span>
+                                        </div>
+                                        <div className={styles.columnTasks}>
+                                            {statusTasks.length === 0 ? (
+                                                <div className={styles.emptyColumn}>
+                                                    <p>Drop tasks here</p>
+                                                </div>
+                                            ) : (
+                                                statusTasks.map(task => (
+                                                    <DraggableTaskItem key={task.id} task={task} />
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
 
                     <div className={styles.taskSummary}>

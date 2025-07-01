@@ -1,7 +1,8 @@
+// src/context/TaskContext.tsx
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { Task, TaskFilters } from '../types/Task';
 import { taskReducer, initialState, TaskState, TaskAction } from './taskReducer';
-import { demoTasks } from '../data/demoTasks'; // 👈 import demo data
+import { demoTasks } from '../data/demoTasks';
 
 export interface TaskContextType {
     state: TaskState;
@@ -12,6 +13,10 @@ export interface TaskContextType {
     setFilters: (filters: Partial<TaskFilters>) => void;
     clearFilters: () => void;
     reorderTasks: (sourceIndex: number, destinationIndex: number) => void;
+    reorderTasksAcrossColumns: (
+        source: { droppableId: string; index: number },
+        destination: { droppableId: string; index: number }
+    ) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -25,7 +30,6 @@ export const useTaskContext = (): TaskContextType => {
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(taskReducer, initialState);
 
-    // 🔁 Load demo tasks once
     useEffect(() => {
         dispatch({ type: 'SET_TASKS', payload: demoTasks });
     }, []);
@@ -45,9 +49,30 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const reorderTasks = (sourceIndex: number, destinationIndex: number) =>
         dispatch({ type: 'REORDER_TASKS', payload: { sourceIndex, destinationIndex } });
 
+    // ✅ New: Handle cross-column task move
+    const reorderTasksAcrossColumns = (
+        source: { droppableId: string; index: number },
+        destination: { droppableId: string; index: number }
+    ) => {
+        dispatch({
+            type: 'MOVE_TASK',
+            payload: { source, destination }
+        });
+    };
+
     return (
         <TaskContext.Provider
-            value={{ state, dispatch, addTask, updateTask, deleteTask, setFilters, clearFilters, reorderTasks }}
+            value={{
+                state,
+                dispatch,
+                addTask,
+                updateTask,
+                deleteTask,
+                setFilters,
+                clearFilters,
+                reorderTasks,
+                reorderTasksAcrossColumns
+            }}
         >
             {children}
         </TaskContext.Provider>

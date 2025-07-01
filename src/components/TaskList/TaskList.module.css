@@ -50,8 +50,224 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Add these additional styles to your TaskList.module.css file */
+
+/* Draggable Task Styles */
+.draggableTask {
+    cursor: grab;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.draggableTask:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.draggableTask:active {
+    cursor: grabbing;
+}
+
+/* Drag Over Column Styles */
+.kanbanColumn.dragOver {
+    background-color: #f1f5f9;
+    border: 2px dashed #3b82f6;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.kanbanColumn.dragOver .columnHeader {
+    background-color: #eff6ff;
+}
+
+.kanbanColumn.dragOver .emptyColumn {
+    background-color: #dbeafe;
+    border: 2px dashed #3b82f6;
+    border-radius: 8px;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+/* Enhanced Column Tasks for better drop zones */
+.columnTasks {
+    min-height: 200px;
+    position: relative;
+}
+
+/* Empty column enhanced for drop indication */
+.emptyColumn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    color: #64748b;
+    font-style: italic;
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.emptyColumn p {
+    margin: 0;
+    user-select: none;
+}
+
+/* Drag feedback styles */
+.draggableTask[draggable="true"] {
+    user-select: none;
+}
+
+/* Smooth transitions for all interactive elements */
+.kanbanColumn {
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.kanbanColumn:not(.dragOver):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Visual feedback during drag */
+.draggableTask:hover .taskItem {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Prevent text selection during drag operations */
+.kanbanBoard * {
+    user-select: none;
+}
+
+/* Allow text selection within task content when not dragging */
+.draggableTask .taskItem * {
+    user-select: text;
+}
+
+.draggableTask:active .taskItem * {
+    user-select: none;
+}
+
+/* Mobile drag improvements */
+@media (max-width: 768px) {
+    .draggableTask {
+        cursor: pointer;
+    }
+
+    .kanbanColumn.dragOver {
+        transform: scale(1.01);
+    }
+}
+
 .statItem strong {
     display: block;
     font-size: 1.1rem;
     color: #111827;
+}
+
+/* Add these styles to your existing TaskList.module.css file */
+
+/* Kanban Board Layout */
+.kanbanBoard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 1rem 0;
+    min-height: 400px;
+}
+
+/* Kanban Column */
+.kanbanColumn {
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Column Header */
+.columnHeader {
+    padding: 1rem;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    border-top: 4px solid #3b82f6;
+    /* Default color, overridden by inline styles */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.columnTitle {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.taskCounter {
+    background: #3b82f6;
+    /* Default color, overridden by inline styles */
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Column Tasks */
+.columnTasks {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+}
+
+/* Empty Column State */
+.emptyColumn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    color: #64748b;
+    font-style: italic;
+}
+
+.emptyColumn p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .kanbanBoard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .kanbanBoard {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .kanbanColumn {
+        min-height: 200px;
+    }
+}
+
+/* Task Item adjustments for Kanban view */
+.kanbanColumn .taskItem {
+    margin-bottom: 0;
+    /* Remove any bottom margin that might exist */
+    transform: none;
+    /* Remove any hover transforms that might interfere */
+    transition: box-shadow 0.2s ease;
+}
+
+.kanbanColumn .taskItem:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

@@ -26,9 +26,15 @@ export type TaskAction =
   | {
       type: "REORDER_TASKS";
       payload: { sourceIndex: number; destinationIndex: number };
+    }
+  | {
+      type: "MOVE_TASK";
+      payload: {
+        source: { droppableId: string; index: number };
+        destination: { droppableId: string; index: number };
+      };
     };
 
-// 🔧 Define reusable initial filters
 const initialFilters: TaskState["filters"] = {
   priority: "",
   status: "",
@@ -89,10 +95,43 @@ export const taskReducer = (
 
     case "REORDER_TASKS":
       const { sourceIndex, destinationIndex } = action.payload;
-      const newTasks = Array.from(state.tasks);
+      const newTasks = [...state.tasks];
       const [removed] = newTasks.splice(sourceIndex, 1);
       newTasks.splice(destinationIndex, 0, removed);
       return { ...state, tasks: newTasks };
+
+    // ✅ New: Cross-column drag and drop
+    case "MOVE_TASK": {
+      const { source, destination } = action.payload;
+
+      const sourceTasks = state.tasks.filter(
+        (t) => t.status === source.droppableId
+      );
+      const taskToMove = sourceTasks[source.index];
+      if (!taskToMove) return state;
+
+      const updatedTask: Task = {
+        ...taskToMove,
+        status: destination.droppableId as Task["status"],
+      };
+
+      const filteredTasks = state.tasks.filter((t) => t.id !== taskToMove.id);
+
+      // Reinsert in destination position
+      const destinationTasks = filteredTasks.filter(
+        (t) => t.status === destination.droppableId
+      );
+      destinationTasks.splice(destination.index, 0, updatedTask);
+
+      const unchangedTasks = filteredTasks.filter(
+        (t) => t.status !== destination.droppableId
+      );
+
+      return {
+        ...state,
+        tasks: [...unchangedTasks, ...destinationTasks],
+      };
+    }
 
     default:
       return state;
