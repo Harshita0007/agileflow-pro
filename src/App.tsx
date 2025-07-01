@@ -1,26 +1,28 @@
 import React from 'react';
-import logo from './logo.svg';
+import TaskList from './components/TaskList/TaskList';
+import TaskFilters from './components/Filters/TaskFilters';
+import TaskForm from './components/TaskForm/TaskForm';
+import { TaskProvider } from './context/TaskContext';
 import './App.css';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <TaskProvider>
+      <div className="app-wrapper">
+        <header className="app-header">
+          <h1 className="app-title">AgileFlow Pro</h1>
+          <p className="app-subtitle">Smart Task Planning for Productive Teams</p>
+        </header>
+
+        <main className="app-main">
+          <TaskForm />
+          {/* ✅ Only one TaskFilters component here */}
+          <TaskFilters />
+          <TaskList />
+        </main>
+      </div>
+    </TaskProvider>
   );
-}
+};
 
 export default App;

@@ -1,0 +1,66 @@
+/* Column Header Icons */
+.kanban-column-header h3::before {
+    content: '🗂️';
+    margin-right: 8px;
+}
+
+.kanban-column-header {
+    background: linear-gradient(to right, #4f46e5, #3b82f6);
+    padding: 16px;
+    color: #fff;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Task Card Refined */
+.kanban-task-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid var(--priority-color, #cbd5e1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kanban-task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Badges */
+.task-assignee,
+.task-due-date {
+    display: inline-block;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: #374151;
+    margin-right: 8px;
+}
+
+/* Tags */
+.task-tags {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.task-tag {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    border-radius: 999px;
+}
+
+/* Dragging card */
+.kanban-task-card.dragging {
+    transform: scale(1.02);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    border-color: #6366f1;
+}
