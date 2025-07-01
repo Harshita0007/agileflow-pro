@@ -1,8 +1,6 @@
 import React from 'react';
-import TaskList from './components/TaskList/TaskList';
-import TaskFilters from './components/Filters/TaskFilters';
-import TaskForm from './components/TaskForm/TaskForm';
 import { TaskProvider } from './context/TaskContext';
+import KanbanBoard from './components/KanbanBoard/KanbanBoard';
 import './App.css';
 
 const App: React.FC = () => {
@@ -15,10 +13,7 @@ const App: React.FC = () => {
         </header>
 
         <main className="app-main">
-          <TaskForm />
-          {/* ✅ Only one TaskFilters component here */}
-          <TaskFilters />
-          <TaskList />
+          <KanbanBoard />
         </main>
       </div>
     </TaskProvider>

@@ -1,97 +1,57 @@
-// src/components/KanbanBoard/KanbanColumn.tsx
-import React from 'react';
-import { Droppable, Draggable } from '@hello-pangea/dnd';
-import { Task } from '../../types/Task';
-import './KanbanBoard.module.css';
+import React, { useState } from 'react';
+import { useTaskContext } from '../../context/TaskContext';
+import TaskModal from '../TaskForm/TaskModal';
+import TaskFilters from '../Filters/TaskFilters';
+import TaskList from '../TaskList/TaskList';
 
-interface KanbanColumnProps {
-    title: string;
-    status: Task['status'];
-    tasks: Task[];
-}
-
-const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, status, tasks }) => {
-    const getPriorityClass = (priority: Task['priority']) => {
-        switch (priority) {
-            case 'high': return 'priorityHigh';
-            case 'medium': return 'priorityMedium';
-            case 'low': return 'priorityLow';
-            default: return '';
-        }
-    };
+const KanbanBoard: React.FC = () => {
+    const { addTask } = useTaskContext();
+    const [showModal, setShowModal] = useState(false);
 
     return (
-        <div className={`kanbanColumn ${status}Column`}>
-            <div className="columnHeader">
-                <div className="columnTitle">
-                    {title}
-                    <span className="columnCount">{tasks.length}</span>
-                </div>
-                <p className="columnSubtitle">
-                    {status === 'todo' ? 'Tasks yet to start' :
-                        status === 'in-progress' ? 'Ongoing tasks' : 'Completed tasks'}
-                </p>
+        <div>
+            {/* Top header with Add Task button */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem' }}>
+                <h2>📋 Task Board</h2>
+                <button
+                    onClick={() => setShowModal(true)}
+                    style={{
+                        backgroundColor: '#3b82f6',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '10px 20px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    }}
+                >
+                    + Add Task
+                </button>
             </div>
 
-            <Droppable droppableId={status}>
-                {(provided, snapshot) => (
-                    <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className={`columnContent ${snapshot.isDraggingOver ? 'dragOver' : ''}`}
-                    >
-                        {tasks.map((task, index) => (
-                            <Draggable key={task.id} draggableId={task.id} index={index}>
-                                {(provided, snapshot) => (
-                                    <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className={`taskCard ${snapshot.isDragging ? 'dragging' : ''}`}
-                                    >
-                                        <div className="taskCardHeader">
-                                            <h4 className="taskCardTitle">{task.title}</h4>
-                                            <span className={`taskCardPriority ${getPriorityClass(task.priority)}`}>
-                                                {task.priority}
-                                            </span>
-                                        </div>
+            {/* Filter tasks */}
+            <div style={{ padding: '0 1rem' }}>
+                <TaskFilters />
+            </div>
 
-                                        {task.description && (
-                                            <p className="taskCardDescription">{task.description}</p>
-                                        )}
+            {/* Task list section */}
+            <div style={{ padding: '1rem' }}>
+                <TaskList />
+            </div>
 
-                                        <div className="taskCardFooter">
-                                            <span className="taskCardAssignee">👤 {task.assignee}</span>
-                                            {task.dueDate && (
-                                                <span className={`taskCardDueDate ${new Date(task.dueDate) < new Date() ? 'overdue'
-                                                    : new Date(task.dueDate).toDateString() === new Date().toDateString() ? 'dueSoon'
-                                                        : ''
-                                                    }`}>
-                                                    📅 {new Date(task.dueDate).toLocaleDateString()}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </Draggable>
-                        ))}
-                        {provided.placeholder}
-
-                        {tasks.length === 0 && (
-                            <div className="emptyColumn">
-                                <img
-                                    src="https://cdn-icons-png.flaticon.com/512/1828/1828774.png"
-                                    alt="empty"
-                                    className="emptyColumnIcon"
-                                />
-                                <p className="emptyColumnText">No tasks here yet</p>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </Droppable>
+            {/* Modal for creating a new task */}
+            {showModal && (
+                <TaskModal
+                    onClose={() => setShowModal(false)}
+                    onCreate={(taskData) => {
+                        addTask(taskData);
+                        setShowModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 };
 
-export default KanbanColumn;
+export default KanbanBoard;

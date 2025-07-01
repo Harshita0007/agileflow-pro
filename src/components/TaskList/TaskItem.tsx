@@ -155,8 +155,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
                     />
 
                     <div className={styles['edit-actions']}>
-                        <button onClick={handleSave}>Save</button>
-                        <button onClick={handleCancel}>Cancel</button>
+                        <button className={styles.save} onClick={handleSave}>💾 Save</button>
+                        <button className={styles.cancel} onClick={handleCancel}>✖ Cancel</button>
                     </div>
                 </div>
             </div>
@@ -168,11 +168,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             <div className={styles['task-header']}>
                 <h3>{task.title}</h3>
                 <div className={styles.actions}>
-                    <button onClick={() => handleStatusChange('todo')}>🕐</button>
-                    <button onClick={() => handleStatusChange('in-progress')}>⚙️</button>
-                    <button onClick={() => handleStatusChange('done')}>✅</button>
-                    <button onClick={handleEdit}>✏️</button>
-                    <button onClick={handleDelete}>🗑️</button>
+                    <button title="Mark as To Do" onClick={() => handleStatusChange('todo')}>🕐</button>
+                    <button title="In Progress" onClick={() => handleStatusChange('in-progress')}>⚙️</button>
+                    <button title="Mark as Done" onClick={() => handleStatusChange('done')}>✅</button>
+                    <button title="Edit Task" onClick={handleEdit}>✏️</button>
+                    <button title="Delete Task" onClick={handleDelete}>🗑️</button>
                 </div>
             </div>
 
