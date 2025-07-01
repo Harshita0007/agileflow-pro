@@ -1,6 +1,8 @@
+// src/components/TaskForm/TaskModal.tsx
 import React, { useState } from 'react';
 import { Task, TaskPriority, TaskStatus } from '../../types/Task';
-import './TaskModal.css'; // 👈 Make sure this file exists or style inline
+import './TaskModal.css'; // Make sure modal backdrop styles exist
+import styles from './TaskForm.module.css'; // ✅ Reuse TaskForm styles
 
 interface Props {
     onClose: () => void;
@@ -8,77 +10,169 @@ interface Props {
 }
 
 const TaskModal: React.FC<Props> = ({ onClose, onCreate }) => {
-    const [title, setTitle] = useState('');
-    const [assignee, setAssignee] = useState('');
-    const [priority, setPriority] = useState<TaskPriority>('medium');
-    const [status, setStatus] = useState<TaskStatus>('todo');
-    const [description, setDescription] = useState('');
-    const [dueDate, setDueDate] = useState('');
+    const [formData, setFormData] = useState<Omit<Task, 'id' | 'tags'>>({
+        title: '',
+        assignee: '',
+        priority: 'medium',
+        status: 'todo',
+        dueDate: '',
+        description: '',
+    });
+
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    const validate = () => {
+        const newErrors: { [key: string]: string } = {};
+        const today = new Date().toISOString().split('T')[0];
+
+        if (!formData.title.trim()) {
+            newErrors.title = 'Title is required.';
+        } else if (formData.title.length > 100) {
+            newErrors.title = 'Title must be under 100 characters.';
+        }
+
+        if (!formData.assignee.trim()) {
+            newErrors.assignee = 'Assignee is required.';
+        } else if (formData.assignee.length > 100) {
+            newErrors.assignee = 'Assignee must be under 100 characters.';
+        }
+
+        if (!formData.dueDate) {
+            newErrors.dueDate = 'Due date is required.';
+        } else if (formData.dueDate <= today) {
+            newErrors.dueDate = 'Due date must be in the future.';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title || !assignee || !dueDate) {
-            alert('Please fill in all required fields.');
-            return;
-        }
+        if (!validate()) return;
 
-        onCreate({
-            title,
-            assignee,
-            priority,
-            status,
-            description,
-            dueDate,
-        });
+        onCreate({ ...formData, tags: [] });
         onClose();
     };
 
     return (
         <div className="modal-backdrop">
             <div className="modal-content">
-                <h2>Create New Task</h2>
-                <form onSubmit={handleSubmit}>
-                    <input
-                        type="text"
-                        placeholder="Enter task title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                    />
-                    <input
-                        type="text"
-                        placeholder="Enter assignee name"
-                        value={assignee}
-                        onChange={(e) => setAssignee(e.target.value)}
-                        required
-                    />
-                    <input
-                        type="date"
-                        value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
-                        required
-                    />
-                    <select value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)}>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                    <select value={status} onChange={(e) => setStatus(e.target.value as TaskStatus)}>
-                        <option value="todo">To Do</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="done">Done</option>
-                    </select>
-                    <textarea
-                        placeholder="Describe the task..."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows={3}
-                    />
-                    <div className="modal-actions">
-                        <button type="submit">Add Task</button>
-                        <button type="button" onClick={onClose} className="cancel">Cancel</button>
+                <div className={styles.formContainer}>
+                    <div className={styles.formHeader}>
+                        <h2 className={styles.formTitle}>Create New Task</h2>
                     </div>
-                </form>
+
+                    <form className={styles.form} onSubmit={handleSubmit}>
+                        {/* Title */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>
+                                Title<span className={styles.required}>*</span>
+                            </label>
+                            <input
+                                className={styles.input}
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                placeholder="Enter task title"
+                            />
+                            {errors.title && <p className={styles.error}>{errors.title}</p>}
+                        </div>
+
+                        {/* Assignee */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>
+                                Assignee<span className={styles.required}>*</span>
+                            </label>
+                            <input
+                                className={styles.input}
+                                name="assignee"
+                                value={formData.assignee}
+                                onChange={handleChange}
+                                placeholder="Enter assignee name"
+                            />
+                            {errors.assignee && <p className={styles.error}>{errors.assignee}</p>}
+                        </div>
+
+                        {/* Priority */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Priority</label>
+                            <select
+                                className={styles.select}
+                                name="priority"
+                                value={formData.priority}
+                                onChange={handleChange}
+                            >
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+
+                        {/* Status */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Status</label>
+                            <select
+                                className={styles.select}
+                                name="status"
+                                value={formData.status}
+                                onChange={handleChange}
+                            >
+                                <option value="todo">To Do</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
+
+                        {/* Due Date */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>
+                                Due Date<span className={styles.required}>*</span>
+                            </label>
+                            <input
+                                className={styles.input}
+                                type="date"
+                                name="dueDate"
+                                value={formData.dueDate}
+                                onChange={handleChange}
+                            />
+                            {errors.dueDate && <p className={styles.error}>{errors.dueDate}</p>}
+                        </div>
+
+                        {/* Description */}
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Description</label>
+                            <textarea
+                                className={styles.textarea}
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Describe the task..."
+                            />
+                        </div>
+
+                        {/* Buttons */}
+                        <div className={styles.buttonGroup}>
+                            <button type="submit" className={styles.submitButton}>
+                                Add Task
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.cancelButton}
+                                onClick={onClose}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
