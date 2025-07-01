@@ -1,8 +1,7 @@
-// src/context/TaskContext.tsx
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Task, TaskFilters } from '../types/Task';
 import { taskReducer, initialState, TaskState, TaskAction } from './taskReducer';
-import { demoTasks } from '../data/demoTasks';
+import { fetchTasksFromAPI } from '../types/taskService'; // ✅ Fetch from API
 
 export interface TaskContextType {
     state: TaskState;
@@ -27,11 +26,30 @@ export const useTaskContext = (): TaskContextType => {
     return context;
 };
 
-export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(taskReducer, initialState);
 
     useEffect(() => {
-        dispatch({ type: 'SET_TASKS', payload: demoTasks });
+        const fetchTasks = async () => {
+            dispatch({ type: 'SET_LOADING', payload: true });
+            try {
+                const tasksFromAPI = await fetchTasksFromAPI();
+
+                // ✅ Merge localStorage tasks
+                const localTasksJSON = localStorage.getItem('localTasks');
+                const localTasks: Task[] = localTasksJSON ? JSON.parse(localTasksJSON) : [];
+
+                const combinedTasks = [...tasksFromAPI, ...localTasks];
+
+                dispatch({ type: 'SET_TASKS', payload: combinedTasks });
+            } catch (err) {
+                dispatch({ type: 'SET_ERROR', payload: 'Failed to load tasks from API' });
+            } finally {
+                dispatch({ type: 'SET_LOADING', payload: false });
+            }
+        };
+
+        fetchTasks();
     }, []);
 
     const addTask = (task: Omit<Task, 'id'>) => {
@@ -39,25 +57,37 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...task,
             id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
         };
+
+        // ✅ Persist to localStorage
+        const existing = localStorage.getItem('localTasks');
+        const parsed = existing ? JSON.parse(existing) : [];
+        parsed.push(newTask);
+        localStorage.setItem('localTasks', JSON.stringify(parsed));
+
         dispatch({ type: 'ADD_TASK', payload: newTask });
     };
 
+    const deleteTask = (id: string) => {
+        // ✅ Also update localStorage
+        const existing = localStorage.getItem('localTasks');
+        const parsed: Task[] = existing ? JSON.parse(existing) : [];
+        const updated = parsed.filter((task) => task.id !== id);
+        localStorage.setItem('localTasks', JSON.stringify(updated));
+
+        dispatch({ type: 'DELETE_TASK', payload: id });
+    };
+
     const updateTask = (task: Task) => dispatch({ type: 'UPDATE_TASK', payload: task });
-    const deleteTask = (id: string) => dispatch({ type: 'DELETE_TASK', payload: id });
     const setFilters = (filters: Partial<TaskFilters>) => dispatch({ type: 'SET_FILTERS', payload: filters });
     const clearFilters = () => dispatch({ type: 'CLEAR_FILTERS' });
     const reorderTasks = (sourceIndex: number, destinationIndex: number) =>
         dispatch({ type: 'REORDER_TASKS', payload: { sourceIndex, destinationIndex } });
 
-    // ✅ New: Handle cross-column task move
     const reorderTasksAcrossColumns = (
         source: { droppableId: string; index: number },
         destination: { droppableId: string; index: number }
     ) => {
-        dispatch({
-            type: 'MOVE_TASK',
-            payload: { source, destination }
-        });
+        dispatch({ type: 'MOVE_TASK', payload: { source, destination } });
     };
 
     return (
@@ -71,7 +101,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setFilters,
                 clearFilters,
                 reorderTasks,
-                reorderTasksAcrossColumns
+                reorderTasksAcrossColumns,
             }}
         >
             {children}

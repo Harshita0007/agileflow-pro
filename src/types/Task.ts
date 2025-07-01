@@ -6,20 +6,12 @@ export interface Task {
   title: string;
   assignee: string;
   status: TaskStatus;
-  description?: string;
+  description: string;
   priority: TaskPriority;
   dueDate: string;
-  tags?: string[];
+  tags: string[];
   completed?: boolean;
   userId?: number;
-}
-
-export interface TaskFilters {
-  priority?: TaskPriority | "";
-  status?: TaskStatus | "";
-  search?: string;
-  dueDateFrom?: string;
-  dueDateTo?: string;
 }
 
 export interface TaskFormData {
@@ -30,4 +22,12 @@ export interface TaskFormData {
   priority: TaskPriority;
   dueDate: string;
   tags: string[];
+}
+
+export interface TaskFilters {
+  priority?: TaskPriority | "";
+  status?: TaskStatus | "";
+  search?: string;
+  dueDateFrom?: string; // YYYY-MM-DD
+  dueDateTo?: string; // YYYY-MM-DD
 }

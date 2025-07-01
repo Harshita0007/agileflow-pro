@@ -1,8 +1,7 @@
-// src/components/TaskForm/TaskModal.tsx
 import React, { useState } from 'react';
 import { Task, TaskPriority, TaskStatus } from '../../types/Task';
-import './TaskModal.css'; // Make sure modal backdrop styles exist
-import styles from './TaskForm.module.css'; // ✅ Reuse TaskForm styles
+import './TaskModal.css';
+import styles from './TaskForm.module.css';
 
 interface Props {
     onClose: () => void;
@@ -71,7 +70,6 @@ const TaskModal: React.FC<Props> = ({ onClose, onCreate }) => {
                     </div>
 
                     <form className={styles.form} onSubmit={handleSubmit}>
-                        {/* Title */}
                         <div className={styles.formGroup}>
                             <label className={styles.label}>
                                 Title<span className={styles.required}>*</span>
