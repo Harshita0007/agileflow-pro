@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/agileflow-pro/static/css/main.6ed9511a.css",
+    "main.js": "/agileflow-pro/static/js/main.dda0d377.js",
+    "static/js/453.3547cb81.chunk.js": "/agileflow-pro/static/js/453.3547cb81.chunk.js",
+    "index.html": "/agileflow-pro/index.html",
+    "main.6ed9511a.css.map": "/agileflow-pro/static/css/main.6ed9511a.css.map",
+    "main.dda0d377.js.map": "/agileflow-pro/static/js/main.dda0d377.js.map",
+    "453.3547cb81.chunk.js.map": "/agileflow-pro/static/js/453.3547cb81.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.6ed9511a.css",
+    "static/js/main.dda0d377.js"
+  ]
+}
